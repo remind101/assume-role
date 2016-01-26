@@ -2,7 +2,7 @@ This is a small utility that makes it easier to use the `aws sts assume-role` co
 
 ## Installation
 
-```console
+```bash
 $ go get -u github.com/remind101/assume-role
 ```
 
@@ -24,7 +24,7 @@ stage:
 
 Perform an action as the given IAM role:
 
-```console
+```bash
 $ assume-role stage aws iam get-user
 ```
 
@@ -32,14 +32,14 @@ The command provided after the role will be executed with the `AWS_ACCESS_KEY_ID
 
 If the role requires MFA, you will be asked for the token first:
 
-```console
+```bash
 $ assume-role prod aws iam get-user
 MFA code: 123456
 ```
 
 If no command is provided, `assume-role` will output the temporary security credentials:
 
-```console
+```bash
 $ assume-role prod
 export AWS_ACCESS_KEY_ID="ASIAI....UOCA"
 export AWS_SECRET_ACCESS_KEY="DuH...G1d"
