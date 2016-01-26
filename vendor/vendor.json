@@ -1,0 +1,11 @@
+{
+	"comment": "",
+	"ignore": "",
+	"package": [
+		{
+			"path": "gopkg.in/yaml.v2",
+			"revision": "5d6f7e02b7cdad63b06ab3877915532cd30073b4",
+			"revisionTime": "2015-01-19T16:55:52-02:00"
+		}
+	]
+}
