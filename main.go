@@ -16,7 +16,17 @@ import (
 
 var configFilePath = fmt.Sprintf("%s/.aws/roles", os.Getenv("HOME"))
 
+func usage() {
+	fmt.Print(`Usage: assume-role <role> [<command> <args...>]
+`)
+}
+
 func main() {
+	if len(os.Args) < 2 {
+		usage()
+		os.Exit(1)
+	}
+
 	role := os.Args[1]
 	args := os.Args[2:]
 
