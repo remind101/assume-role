@@ -50,6 +50,7 @@ func execWithCredentials(argv []string, creds *credentials) error {
 	env = append(env, fmt.Sprintf("AWS_ACCESS_KEY_ID=%s", creds.AccessKeyId))
 	env = append(env, fmt.Sprintf("AWS_SECRET_ACCESS_KEY=%s", creds.SecretAccessKey))
 	env = append(env, fmt.Sprintf("AWS_SESSION_TOKEN=%s", creds.SessionToken))
+	env = append(env, fmt.Sprintf("AWS_SECURITY_TOKEN=%s", creds.SessionToken))
 	return syscall.Exec(argv0, argv, env)
 }
 
@@ -65,6 +66,7 @@ func printCredentials(creds *credentials) {
 	fmt.Printf("export AWS_ACCESS_KEY_ID=\"%s\"\n", creds.AccessKeyId)
 	fmt.Printf("export AWS_SECRET_ACCESS_KEY=\"%s\"\n", creds.SecretAccessKey)
 	fmt.Printf("export AWS_SESSION_TOKEN=\"%s\"\n", creds.SessionToken)
+	fmt.Printf("export AWS_SECURITY_TOKEN=\"%s\"\n", creds.SessionToken)
 	fmt.Printf("# Run this to configure your shell:\n")
 	fmt.Printf("# eval $(%s)\n", strings.Join(os.Args, " "))
 }
