@@ -40,7 +40,13 @@ MFA code: 123456
 If no command is provided, `assume-role` will output the temporary security credentials:
 
 ```console
-$ export $(assume-role prod)
+$ assume-role prod
+export AWS_ACCESS_KEY_ID="ASIAI....UOCA"
+export AWS_SECRET_ACCESS_KEY="DuH...G1d"
+export AWS_SESSION_TOKEN="AQ...1BQ=="
+export AWS_SECURITY_TOKEN="AQ...1BQ=="
+# Run this to configure your shell:
+# eval $(assume-role prod)
 ```
 
 ## TODO
