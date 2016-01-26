@@ -25,7 +25,7 @@ stage:
 Perform an action as the given IAM role:
 
 ```console
-$ assume-role prod aws iam get-user
+$ assume-role stage aws iam get-user
 ```
 
 The command provided after the role will be executed with the `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_SESSION_TOKEN` environment variables set.
@@ -33,7 +33,7 @@ The command provided after the role will be executed with the `AWS_ACCESS_KEY_ID
 If the role requires MFA, you will be asked for the token first:
 
 ```console
-$ assume-role stage aws iam get-user
+$ assume-role prod aws iam get-user
 MFA code: 123456
 ```
 
