@@ -56,16 +56,17 @@ func execWithCredentials(argv []string, creds *credentials) error {
 		return err
 	}
 
+	os.Setenv("AWS_ACCESS_KEY_ID", creds.AccessKeyID)
+	os.Setenv("AWS_SECRET_ACCESS_KEY", creds.SecretAccessKey)
+	os.Setenv("AWS_SESSION_TOKEN", creds.SessionToken)
+	os.Setenv("AWS_SECURITY_TOKEN", creds.SessionToken)
+
 	env := os.Environ()
-	env = append(env, fmt.Sprintf("AWS_ACCESS_KEY_ID=%s", creds.AccessKeyId))
-	env = append(env, fmt.Sprintf("AWS_SECRET_ACCESS_KEY=%s", creds.SecretAccessKey))
-	env = append(env, fmt.Sprintf("AWS_SESSION_TOKEN=%s", creds.SessionToken))
-	env = append(env, fmt.Sprintf("AWS_SECURITY_TOKEN=%s", creds.SessionToken))
 	return syscall.Exec(argv0, argv, env)
 }
 
 type credentials struct {
-	AccessKeyId     string
+	AccessKeyID     string
 	SecretAccessKey string
 	SessionToken    string
 }
@@ -73,7 +74,7 @@ type credentials struct {
 // printCredentials prints the credentials in a way that can easily be sourced
 // with bash.
 func printCredentials(creds *credentials) {
-	fmt.Printf("export AWS_ACCESS_KEY_ID=\"%s\"\n", creds.AccessKeyId)
+	fmt.Printf("export AWS_ACCESS_KEY_ID=\"%s\"\n", creds.AccessKeyID)
 	fmt.Printf("export AWS_SECRET_ACCESS_KEY=\"%s\"\n", creds.SecretAccessKey)
 	fmt.Printf("export AWS_SESSION_TOKEN=\"%s\"\n", creds.SessionToken)
 	fmt.Printf("export AWS_SECURITY_TOKEN=\"%s\"\n", creds.SessionToken)
