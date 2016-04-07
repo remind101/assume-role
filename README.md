@@ -2,6 +2,14 @@ This is a small utility that makes it easier to use the `aws sts assume-role` co
 
 ## Installation
 
+On OS X, the best way to get it is to use homebrew:
+
+```bash
+brew install remind101/formulae/assume-role
+```
+
+If you have a working Go 1.6 environment:
+
 ```bash
 $ go get -u github.com/remind101/assume-role
 ```
