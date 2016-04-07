@@ -38,16 +38,29 @@ func main() {
 		must(fmt.Errorf("%s not in ~/.aws/roles", role))
 	}
 
+	if os.Getenv("ASSUMED_ROLE") != "" {
+		// Clear out any previously set AWS_ environment variables so
+		// they aren't used with the assumeRole command.
+		cleanEnv()
+	}
+
 	creds, err := assumeRole(roleConfig.Role, roleConfig.MFA)
 	must(err)
 
 	if len(args) == 0 {
-		printCredentials(creds)
+		printCredentials(role, creds)
 		return
 	}
 
 	err = execWithCredentials(args, creds)
 	must(err)
+}
+
+func cleanEnv() {
+	os.Unsetenv("AWS_ACCESS_KEY_ID")
+	os.Unsetenv("AWS_SECRET_ACCESS_KEY")
+	os.Unsetenv("AWS_SESSION_TOKEN")
+	os.Unsetenv("AWS_SECURITY_TOKEN")
 }
 
 func execWithCredentials(argv []string, creds *credentials) error {
@@ -73,11 +86,12 @@ type credentials struct {
 
 // printCredentials prints the credentials in a way that can easily be sourced
 // with bash.
-func printCredentials(creds *credentials) {
+func printCredentials(role string, creds *credentials) {
 	fmt.Printf("export AWS_ACCESS_KEY_ID=\"%s\"\n", creds.AccessKeyID)
 	fmt.Printf("export AWS_SECRET_ACCESS_KEY=\"%s\"\n", creds.SecretAccessKey)
 	fmt.Printf("export AWS_SESSION_TOKEN=\"%s\"\n", creds.SessionToken)
 	fmt.Printf("export AWS_SECURITY_TOKEN=\"%s\"\n", creds.SessionToken)
+	fmt.Printf("export ASSUMED_ROLE=\"%s\"\n", role)
 	fmt.Printf("# Run this to configure your shell:\n")
 	fmt.Printf("# eval $(%s)\n", strings.Join(os.Args, " "))
 }
