@@ -2,8 +2,6 @@ package main
 
 import (
 	"bufio"
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -12,6 +10,9 @@ import (
 	"syscall"
 
 	"gopkg.in/yaml.v2"
+	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/aws"
 )
 
 var configFilePath = fmt.Sprintf("%s/.aws/roles", os.Getenv("HOME"))
@@ -97,41 +98,33 @@ func printCredentials(role string, creds *credentials) {
 }
 
 // assumeRole assumes the given role and returns the temporary STS credentials.
+
 func assumeRole(role, mfa string) (*credentials, error) {
-	args := []string{
-		"sts",
-		"assume-role",
-		"--output", "json",
-		"--role-arn", role,
-		"--role-session-name", "cli",
+	sess := session.Must(session.NewSession())
+
+	svc := sts.New(sess)
+
+	params := &sts.AssumeRoleInput{
+		RoleArn: aws.String(role),
+		RoleSessionName: aws.String("cli"),
 	}
 	if mfa != "" {
-		args = append(args,
-			"--serial-number", mfa,
-			"--token-code",
-			readTokenCode(),
-		)
+		params.SerialNumber = aws.String(mfa)
+		params.TokenCode = aws.String(readTokenCode())
 	}
 
-	b := new(bytes.Buffer)
-	cmd := exec.Command("aws", args...)
-	cmd.Stdout = b
-	cmd.Stderr = os.Stderr
+	resp, err := svc.AssumeRole(params)
 
-	if err := cmd.Start(); err != nil {
+	if err != nil {
 		return nil, err
 	}
 
-	if err := cmd.Wait(); err != nil {
-		return nil, err
-	}
+	var creds credentials
+	creds.AccessKeyID = *resp.Credentials.AccessKeyId
+	creds.SecretAccessKey = *resp.Credentials.SecretAccessKey
+	creds.SessionToken = *resp.Credentials.SessionToken
 
-	var resp struct{ Credentials credentials }
-	if err := json.NewDecoder(b).Decode(&resp); err != nil {
-		return nil, err
-	}
-
-	return &resp.Credentials, nil
+	return &creds, nil
 }
 
 type roleConfig struct {
