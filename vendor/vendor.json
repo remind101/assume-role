@@ -3,9 +3,16 @@
 	"ignore": "",
 	"package": [
 		{
+			"checksumSHA1": "nQcqx+x0SHJCqAvGXxZBGzdNvPg=",
+			"path": "github.com/aws/aws-sdk-go",
+			"revision": "0bbc97afc1bd36f23958f2f26764ecf0253834bd",
+			"revisionTime": "2017-04-05T23:52:32Z"
+		},
+		{
 			"path": "gopkg.in/yaml.v2",
 			"revision": "5d6f7e02b7cdad63b06ab3877915532cd30073b4",
 			"revisionTime": "2015-01-19T16:55:52-02:00"
 		}
-	]
+	],
+	"rootPath": "assume-role"
 }
