@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -9,13 +10,15 @@ import (
 	"strings"
 	"syscall"
 
-	"gopkg.in/yaml.v2"
-	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/go-ini/ini"
+	"gopkg.in/yaml.v2"
 )
 
-var configFilePath = fmt.Sprintf("%s/.aws/roles", os.Getenv("HOME"))
+var configFilePath = fmt.Sprintf("%s/.aws/config", os.Getenv("HOME"))
+var roleFilePath = fmt.Sprintf("%s/.aws/roles", os.Getenv("HOME"))
 
 func usage() {
 	fmt.Print(`Usage: assume-role <role> [<command> <args...>]
@@ -105,7 +108,7 @@ func assumeRole(role, mfa string) (*credentials, error) {
 	svc := sts.New(sess)
 
 	params := &sts.AssumeRoleInput{
-		RoleArn: aws.String(role),
+		RoleArn:         aws.String(role),
 		RoleSessionName: aws.String("cli"),
 	}
 	if mfa != "" {
@@ -128,6 +131,7 @@ func assumeRole(role, mfa string) (*credentials, error) {
 }
 
 type roleConfig struct {
+	// Tags for YAML serialization for roles file
 	Role string `yaml:"role"`
 	MFA  string `yaml:"mfa"`
 }
@@ -142,9 +146,54 @@ func readTokenCode() string {
 	return strings.TrimSpace(text)
 }
 
-// loadConfig loads the ~/.aws/roles file.
+// load config from roles file if it exists, otherwise config file if it exists, otherwise return an
+// error
 func loadConfig() (config, error) {
-	raw, err := ioutil.ReadFile(configFilePath)
+	if _, err := os.Stat(roleFilePath); err == nil {
+		fmt.Printf("WARNING: using deprecated role file (%s), switch to config file"+
+			" (https://docs.aws.amazon.com/cli/latest/userguide/cli-roles.html)\n",
+			roleFilePath)
+		return loadConfigFromRoleFile()
+	} else if _, err := os.Stat(configFilePath); err == nil {
+		return loadConfigFromConfigFile()
+	}
+	return nil, errors.New("No config or role file")
+}
+
+// load configFromConfigFile loads the ~/.aws/config file.
+func loadConfigFromConfigFile() (config, error) {
+	cfg, err := ini.Load(configFilePath)
+	if err != nil {
+		return nil, err
+	}
+
+	config := make(config)
+	for _, secname := range cfg.SectionStrings() {
+		if strings.HasPrefix(secname, "profile ") {
+			section := cfg.Section(secname)
+
+			rolekey, err := section.GetKey("role_arn")
+			if err != nil {
+				return nil, err
+			}
+			role := rolekey.String()
+
+			var mfa string
+			if section.HasKey("mfa_serial") {
+				mfa = section.Key("mfa_serial").String()
+			}
+
+			name := strings.Replace(secname, "profile ", "", 1)
+			config[name] = roleConfig{role, mfa}
+		}
+	}
+
+	return config, nil
+}
+
+// loadConfigFromRoleFile loads the ~/.aws/roles file.
+func loadConfigFromRoleFile() (config, error) {
+	raw, err := ioutil.ReadFile(roleFilePath)
 	if err != nil {
 		return nil, err
 	}
