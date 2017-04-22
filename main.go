@@ -35,6 +35,9 @@ func main() {
 	// Load credentials from configFilePath if it exists, else use regular AWS config
 	var creds *credentials.Value
 	if _, err := os.Stat(configFilePath); err == nil {
+		fmt.Printf("WARNING: using deprecated role file (%s), switch to config file"+
+			" (https://docs.aws.amazon.com/cli/latest/userguide/cli-roles.html)\n",
+			configFilePath)
 		config, err := loadConfig()
 		must(err)
 
