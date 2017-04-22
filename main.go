@@ -11,6 +11,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/aws"
 )
@@ -31,29 +32,39 @@ func main() {
 	role := os.Args[1]
 	args := os.Args[2:]
 
-	config, err := loadConfig()
-	must(err)
+	// Load credentials from configFilePath if it exists, else use regular AWS config
+	var creds *credentials.Value
+	if _, err := os.Stat(configFilePath); err == nil {
+		config, err := loadConfig()
+		must(err)
 
-	roleConfig, ok := config[role]
-	if !ok {
-		must(fmt.Errorf("%s not in ~/.aws/roles", role))
+		roleConfig, ok := config[role]
+		if !ok {
+			must(fmt.Errorf("%s not in ~/.aws/roles", role))
+		}
+
+		if os.Getenv("ASSUMED_ROLE") != "" {
+			// Clear out any previously set AWS_ environment variables so
+			// they aren't used by this call
+			cleanEnv()
+		}
+
+		creds, err = assumeRole(roleConfig.Role, roleConfig.MFA)
+		must(err)
+	} else {
+		if os.Getenv("ASSUMED_ROLE") != "" {
+			cleanEnv()
+		}
+		creds, err = assumeProfile(role)
+		must(err)
 	}
-
-	if os.Getenv("ASSUMED_ROLE") != "" {
-		// Clear out any previously set AWS_ environment variables so
-		// they aren't used with the assumeRole command.
-		cleanEnv()
-	}
-
-	creds, err := assumeRole(roleConfig.Role, roleConfig.MFA)
-	must(err)
 
 	if len(args) == 0 {
 		printCredentials(role, creds)
 		return
 	}
 
-	err = execWithCredentials(args, creds)
+	err := execWithCredentials(args, creds)
 	must(err)
 }
 
@@ -64,7 +75,7 @@ func cleanEnv() {
 	os.Unsetenv("AWS_SECURITY_TOKEN")
 }
 
-func execWithCredentials(argv []string, creds *credentials) error {
+func execWithCredentials(argv []string, creds *credentials.Value) error {
 	argv0, err := exec.LookPath(argv[0])
 	if err != nil {
 		return err
@@ -79,15 +90,9 @@ func execWithCredentials(argv []string, creds *credentials) error {
 	return syscall.Exec(argv0, argv, env)
 }
 
-type credentials struct {
-	AccessKeyID     string
-	SecretAccessKey string
-	SessionToken    string
-}
-
 // printCredentials prints the credentials in a way that can easily be sourced
 // with bash.
-func printCredentials(role string, creds *credentials) {
+func printCredentials(role string, creds *credentials.Value) {
 	fmt.Printf("export AWS_ACCESS_KEY_ID=\"%s\"\n", creds.AccessKeyID)
 	fmt.Printf("export AWS_SECRET_ACCESS_KEY=\"%s\"\n", creds.SecretAccessKey)
 	fmt.Printf("export AWS_SESSION_TOKEN=\"%s\"\n", creds.SessionToken)
@@ -97,9 +102,26 @@ func printCredentials(role string, creds *credentials) {
 	fmt.Printf("# eval $(%s)\n", strings.Join(os.Args, " "))
 }
 
-// assumeRole assumes the given role and returns the temporary STS credentials.
 
-func assumeRole(role, mfa string) (*credentials, error) {
+// assumeProfile assumes the named profile which must exist in ~/.aws/config
+// (https://docs.aws.amazon.com/cli/latest/userguide/cli-roles.html) and returns the temporary STS
+// credentials.
+func assumeProfile(profile string) (*credentials.Value, error) {
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
+		Profile:                 profile,
+		SharedConfigState:       session.SharedConfigEnable,
+		AssumeRoleTokenProvider: readTokenCode,
+	}))
+
+	creds, err := sess.Config.Credentials.Get()
+	if err != nil {
+		return nil, err
+	}
+	return &creds, nil
+}
+
+// assumeRole assumes the given role and returns the temporary STS credentials.
+func assumeRole(role, mfa string) (*credentials.Value, error) {
 	sess := session.Must(session.NewSession())
 
 	svc := sts.New(sess)
@@ -110,7 +132,11 @@ func assumeRole(role, mfa string) (*credentials, error) {
 	}
 	if mfa != "" {
 		params.SerialNumber = aws.String(mfa)
-		params.TokenCode = aws.String(readTokenCode())
+		token, err := readTokenCode()
+		if err != nil {
+			return nil, err
+		}
+		params.TokenCode = aws.String(token)
 	}
 
 	resp, err := svc.AssumeRole(params)
@@ -119,7 +145,7 @@ func assumeRole(role, mfa string) (*credentials, error) {
 		return nil, err
 	}
 
-	var creds credentials
+	var creds credentials.Value
 	creds.AccessKeyID = *resp.Credentials.AccessKeyId
 	creds.SecretAccessKey = *resp.Credentials.SecretAccessKey
 	creds.SessionToken = *resp.Credentials.SessionToken
@@ -135,11 +161,14 @@ type roleConfig struct {
 type config map[string]roleConfig
 
 // readTokenCode reads the MFA token from Stdin.
-func readTokenCode() string {
+func readTokenCode() (string, error) {
 	r := bufio.NewReader(os.Stdin)
 	fmt.Fprintf(os.Stderr, "MFA code: ")
-	text, _ := r.ReadString('\n')
-	return strings.TrimSpace(text)
+	text, err := r.ReadString('\n')
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(text), nil
 }
 
 // loadConfig loads the ~/.aws/roles file.
