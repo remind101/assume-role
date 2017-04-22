@@ -9,11 +9,11 @@ import (
 	"strings"
 	"syscall"
 
-	"gopkg.in/yaml.v2"
-	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/sts"
+	"gopkg.in/yaml.v2"
 )
 
 var configFilePath = fmt.Sprintf("%s/.aws/roles", os.Getenv("HOME"))
@@ -102,7 +102,6 @@ func printCredentials(role string, creds *credentials.Value) {
 	fmt.Printf("# eval $(%s)\n", strings.Join(os.Args, " "))
 }
 
-
 // assumeProfile assumes the named profile which must exist in ~/.aws/config
 // (https://docs.aws.amazon.com/cli/latest/userguide/cli-roles.html) and returns the temporary STS
 // credentials.
@@ -127,7 +126,7 @@ func assumeRole(role, mfa string) (*credentials.Value, error) {
 	svc := sts.New(sess)
 
 	params := &sts.AssumeRoleInput{
-		RoleArn: aws.String(role),
+		RoleArn:         aws.String(role),
 		RoleSessionName: aws.String("cli"),
 	}
 	if mfa != "" {
