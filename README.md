@@ -16,16 +16,21 @@ $ go get -u github.com/remind101/assume-role
 
 ## Configuration
 
-The first step is to setup "aliases" of the roles to assume, this is done in a yaml formatted configuration file in `~/.aws/roles`.
+The first step is to setup profiles for the different roles you'd like to assume in `~/.aws/config`. Follow the official AWS docs on how to do this at https://docs.aws.amazon.com/cli/latest/userguide/cli-roles.html.
 
 **Example**
 
 ```yaml
-prod:
-  role: arn:aws:iam::1234:role/SuperUser
-  mfa: arn:aws:iam::5678:mfa/eric-holmes # Enable MFA for this role. Note that this should be the MFA device in the account that you're assuming FROM, not the account you're assuming TO.
-stage:
-  role: arn:aws:iam::9012:role/SuperUser
+[profile stage]
+region = us-east-1
+role_arn = arn:aws:iam::1234:role/SuperUser
+mfa_serial = arn:aws:iam::5678:mfa/eric-holmes
+source_profile = default
+
+[profile prod]
+region = us-east-1
+role_arn = arn:aws:iam::9012:role/SuperUser
+source_profile = default
 ```
 
 ## Usage
