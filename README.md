@@ -20,7 +20,7 @@ The first step is to setup profiles for the different roles you'd like to assume
 
 **Example**
 
-```yaml
+```toml
 [profile stage]
 region = us-east-1
 role_arn = arn:aws:iam::1234:role/SuperUser
