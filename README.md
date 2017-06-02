@@ -31,7 +31,7 @@ aws_secret_access_key = wJalrXUtnFEMI/K7MDENG/MYxFAKEYEXAMPLEKEY
 # Stage AWS Account.
 region = us-east-1
 role_arn = arn:aws:iam::1234:role/SuperUser
-usermgtsource_profile = usermgt
+source_profile = usermgt
 
 [profile prod]
 # Production AWS Account.
