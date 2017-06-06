@@ -18,14 +18,13 @@ $ go get -u github.com/remind101/assume-role
 
 Setup a profile for each role you would like to assume in `~/.aws/config`.
 
-**For example, `~/.aws/config`:**
+For example:
+
+`~/.aws/config`:
 
 ```ini
 [profile usermgt]
-# IAM user management AWS Account.
 region = us-east-1
-aws_access_key_id = AKIMYFAKEEXAMPLE
-aws_secret_access_key = wJalrXUtnFEMI/K7MDENG/MYxFAKEYEXAMPLEKEY
 
 [profile stage]
 # Stage AWS Account.
@@ -41,6 +40,14 @@ mfa_serial = arn:aws:iam::5678:mfa/eric-holmes
 source_profile = usermgt
 ```
 
+`~/.aws/credentials`:
+
+```ini
+[usermgt]
+aws_access_key_id = AKIMYFAKEEXAMPLE
+aws_secret_access_key = wJalrXUtnFEMI/K7MDENG/MYxFAKEYEXAMPLEKEY
+```
+
 Reference: https://docs.aws.amazon.com/cli/latest/userguide/cli-roles.html
 
 In this example, we have three AWS Account profiles:
@@ -49,9 +56,11 @@ In this example, we have three AWS Account profiles:
  * stage
  * prod
 
-Each member of the org has their own IAM user and access/secret key in the `usermgt` AWS Account.
+Each member of the org has their own IAM user and access/secret key for the `usermgt` AWS Account.
+The keys are stored in the `~/.aws/credentials` file.
+
 The `stage` and `prod` AWS Accounts have an IAM role named `SuperUser`.
-The `assume-role` tool helps a user authenticate and then assume the privilege of the `SuperUser` role, even across AWS accounts!
+The `assume-role` tool helps a user authenticate (using their keys) and then assume the privilege of the `SuperUser` role, even across AWS accounts!
 
 ## Usage
 
