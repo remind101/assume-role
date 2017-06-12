@@ -87,8 +87,20 @@ export AWS_ACCESS_KEY_ID="ASIAI....UOCA"
 export AWS_SECRET_ACCESS_KEY="DuH...G1d"
 export AWS_SESSION_TOKEN="AQ...1BQ=="
 export AWS_SECURITY_TOKEN="AQ...1BQ=="
+export ASSUMED_ROLE="prod"
 # Run this to configure your shell:
 # eval $(assume-role prod)
+```
+
+Or windows:
+```cmd
+$env:AWS_ACCESS_KEY_ID="ASIAI....UOCA"
+$env:AWS_SECRET_ACCESS_KEY="DuH...G1d"
+$env:AWS_SESSION_TOKEN="AQ...1BQ=="
+$env:AWS_SECURITY_TOKEN="AQ...1BQ=="
+$env:ASSUMED_ROLE="prod"
+# Run this to configure your shell:
+# assume-role.exe prod | Invoke-Expression
 ```
 
 ## TODO
