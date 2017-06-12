@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"gopkg.in/yaml.v2"
+	"runtime"
 )
 
 var configFilePath = fmt.Sprintf("%s/.aws/roles", os.Getenv("HOME"))
@@ -78,7 +79,11 @@ func main() {
 	}
 
 	if len(args) == 0 {
-		printCredentials(role, creds)
+		if runtime.GOOS == "windows" {
+			printWindowsCredentials(role, creds)
+		} else {
+			printCredentials(role, creds)
+		}
 		return
 	}
 
@@ -118,6 +123,18 @@ func printCredentials(role string, creds *credentials.Value) {
 	fmt.Printf("export ASSUMED_ROLE=\"%s\"\n", role)
 	fmt.Printf("# Run this to configure your shell:\n")
 	fmt.Printf("# eval $(%s)\n", strings.Join(os.Args, " "))
+}
+
+// printWindowsCredentials prints the credentials in a way that can easily be sourced
+// with Windows powershell using Invoke-Expression.
+func printWindowsCredentials(role string, creds *credentials.Value) {
+	fmt.Printf("$env:AWS_ACCESS_KEY_ID=\"%s\"\n", creds.AccessKeyID)
+	fmt.Printf("$env:AWS_SECRET_ACCESS_KEY=\"%s\"\n", creds.SecretAccessKey)
+	fmt.Printf("$env:AWS_SESSION_TOKEN=\"%s\"\n", creds.SessionToken)
+	fmt.Printf("$env:AWS_SECURITY_TOKEN=\"%s\"\n", creds.SessionToken)
+	fmt.Printf("$env:ASSUMED_ROLE=\"%s\"\n", role)
+	fmt.Printf("# Run this to configure your shell:\n")
+	fmt.Printf("# %s | Invoke-Expression \n", strings.Join(os.Args, " "))
 }
 
 // assumeProfile assumes the named profile which must exist in ~/.aws/config
