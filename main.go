@@ -62,18 +62,14 @@ func main() {
 			must(fmt.Errorf("%s not in ~/.aws/roles", role))
 		}
 
-		if os.Getenv("ASSUMED_ROLE") != "" {
-			// Clear out any previously set AWS_ environment variables so
-			// they aren't used by this call
-			cleanEnv()
-		}
+		// Clear out any previously set AWS_ environment variables so
+		// they aren't used by this call
+		cleanEnv()
 
 		creds, err = assumeRole(roleConfig.Role, roleConfig.MFA, *duration)
 		must(err)
 	} else {
-		if os.Getenv("ASSUMED_ROLE") != "" {
-			cleanEnv()
-		}
+		cleanEnv()
 		creds, err = assumeProfile(role)
 		must(err)
 	}
