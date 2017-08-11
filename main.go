@@ -34,12 +34,17 @@ func init() {
 func main() {
 	var (
 		duration = flag.Duration("duration", time.Hour, "The duration that the credentials will be valid for.")
-		export   = flag.Bool("export", false, "If true, forces the use of bash/shell export statements that can be sourced")
+		format   = flag.String("format", "", "Format can be 'bash' or 'powershell'. Default format is based on operating system.")
 	)
 
 	flag.Parse()
 	argv := flag.Args()
 	if len(argv) < 1 {
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	if *format != "" && *format != "bash" && *format != "powershell" {
 		flag.Usage()
 		os.Exit(1)
 	}
@@ -81,9 +86,9 @@ func main() {
 	}
 
 	if len(args) == 0 {
-		if !*export && runtime.GOOS == "windows" {
+		if *format == "powershell" || (*format == "" && runtime.GOOS == "windows") {
 			printWindowsCredentials(role, creds)
-		} else {
+		} else { // *format == "bash"
 			printCredentials(role, creds)
 		}
 		return
