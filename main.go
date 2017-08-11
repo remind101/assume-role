@@ -44,9 +44,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	if *format != "" && *format != "bash" && *format != "powershell" {
-		flag.Usage()
-		os.Exit(1)
+	if *format == "" {
+		switch runtime.GOOS {
+		case "windows":
+			*format = "powershell"
+		default:
+			*format = "bash"
+		}
 	}
 
 	stscreds.DefaultDuration = *duration
@@ -86,10 +90,14 @@ func main() {
 	}
 
 	if len(args) == 0 {
-		if *format == "powershell" || (*format == "" && runtime.GOOS == "windows") {
+		switch *format {
+		case "powershell":
 			printWindowsCredentials(role, creds)
-		} else { // *format == "bash"
+		case "bash":
 			printCredentials(role, creds)
+		default:
+			flag.Usage()
+			os.Exit(1)
 		}
 		return
 	}
