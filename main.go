@@ -31,10 +31,19 @@ func init() {
 	flag.Usage = usage
 }
 
+func defaultFormat() string {
+	switch runtime.GOOS {
+	case "windows":
+		return "powershell"
+	default:
+		return "bash"
+	}
+}
+
 func main() {
 	var (
 		duration = flag.Duration("duration", time.Hour, "The duration that the credentials will be valid for.")
-		format   = flag.String("format", "", "Format can be 'bash' or 'powershell'. Default format is based on operating system.")
+		format   = flag.String("format", defaultFormat(), "Format can be 'bash' or 'powershell'.")
 	)
 
 	flag.Parse()
@@ -42,15 +51,6 @@ func main() {
 	if len(argv) < 1 {
 		flag.Usage()
 		os.Exit(1)
-	}
-
-	if *format == "" {
-		switch runtime.GOOS {
-		case "windows":
-			*format = "powershell"
-		default:
-			*format = "bash"
-		}
 	}
 
 	stscreds.DefaultDuration = *duration
