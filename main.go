@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	"syscall"
 	"time"
@@ -17,7 +18,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"gopkg.in/yaml.v2"
-	"runtime"
 )
 
 var configFilePath = fmt.Sprintf("%s/.aws/roles", os.Getenv("HOME"))
@@ -34,6 +34,7 @@ func init() {
 func main() {
 	var (
 		duration = flag.Duration("duration", time.Hour, "The duration that the credentials will be valid for.")
+		export   = flag.Bool("export", false, "If true, forces the use of bash/shell export statements that can be sourced")
 	)
 
 	flag.Parse()
@@ -70,6 +71,7 @@ func main() {
 
 		creds, err = assumeRole(roleConfig.Role, roleConfig.MFA, *duration)
 		must(err)
+
 	} else {
 		if os.Getenv("ASSUMED_ROLE") != "" {
 			cleanEnv()
@@ -79,7 +81,7 @@ func main() {
 	}
 
 	if len(args) == 0 {
-		if runtime.GOOS == "windows" {
+		if !*export && runtime.GOOS == "windows" {
 			printWindowsCredentials(role, creds)
 		} else {
 			printCredentials(role, creds)
@@ -213,8 +215,8 @@ func loadConfig() (config, error) {
 		return nil, err
 	}
 
-	config := make(config)
-	return config, yaml.Unmarshal(raw, &config)
+	roleConfig := make(config)
+	return roleConfig, yaml.Unmarshal(raw, &roleConfig)
 }
 
 func must(err error) {
