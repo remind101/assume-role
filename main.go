@@ -48,7 +48,6 @@ func main() {
 		duration = flag.Duration("duration", time.Hour, "The duration that the credentials will be valid for.")
 		format   = flag.String("format", defaultFormat(), "Format can be 'bash' or 'powershell'.")
 	)
-	fmt.Printf("format: %s\n", defaultFormat())
 	flag.Parse()
 	argv := flag.Args()
 	if len(argv) < 1 {
