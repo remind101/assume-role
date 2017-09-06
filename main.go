@@ -34,7 +34,10 @@ func init() {
 func defaultFormat() string {
 	switch runtime.GOOS {
 	case "windows":
-		return "powershell"
+		if os.Getenv("SHELL") == "" {
+			return "powershell"
+		}
+		fallthrough
 	default:
 		return "bash"
 	}
@@ -45,13 +48,14 @@ func main() {
 		duration = flag.Duration("duration", time.Hour, "The duration that the credentials will be valid for.")
 		format   = flag.String("format", defaultFormat(), "Format can be 'bash' or 'powershell'.")
 	)
-
+	fmt.Printf("format: %s\n", defaultFormat())
 	flag.Parse()
 	argv := flag.Args()
 	if len(argv) < 1 {
 		flag.Usage()
 		os.Exit(1)
 	}
+
 
 	stscreds.DefaultDuration = *duration
 
@@ -92,7 +96,7 @@ func main() {
 	if len(args) == 0 {
 		switch *format {
 		case "powershell":
-			printWindowsCredentials(role, creds)
+			printPowerShellCredentials(role, creds)
 		case "bash":
 			printCredentials(role, creds)
 		default:
@@ -140,9 +144,9 @@ func printCredentials(role string, creds *credentials.Value) {
 	fmt.Printf("# eval $(%s)\n", strings.Join(os.Args, " "))
 }
 
-// printWindowsCredentials prints the credentials in a way that can easily be sourced
+// printPowerShellCredentials prints the credentials in a way that can easily be sourced
 // with Windows powershell using Invoke-Expression.
-func printWindowsCredentials(role string, creds *credentials.Value) {
+func printPowerShellCredentials(role string, creds *credentials.Value) {
 	fmt.Printf("$env:AWS_ACCESS_KEY_ID=\"%s\"\n", creds.AccessKeyID)
 	fmt.Printf("$env:AWS_SECRET_ACCESS_KEY=\"%s\"\n", creds.SecretAccessKey)
 	fmt.Printf("$env:AWS_SESSION_TOKEN=\"%s\"\n", creds.SessionToken)
