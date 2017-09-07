@@ -14,6 +14,13 @@ If you have a working Go 1.6/1.7 environment:
 $ go get -u github.com/remind101/assume-role
 ```
 
+On Windows with PowerShell, you can use [scoop.sh](http://scoop.sh/)
+
+```cmd
+$ scoop bucket add extras
+$ scoop install assume-role
+```
+
 ## Configuration
 
 Setup a profile for each role you would like to assume in `~/.aws/config`.
@@ -92,7 +99,7 @@ export ASSUMED_ROLE="prod"
 # eval $(assume-role prod)
 ```
 
-Or windows:
+Or windows PowerShell:
 ```cmd
 $env:AWS_ACCESS_KEY_ID="ASIAI....UOCA"
 $env:AWS_SECRET_ACCESS_KEY="DuH...G1d"
