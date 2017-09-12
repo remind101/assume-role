@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"regexp"
 	"runtime"
 	"strings"
 	"syscall"
@@ -20,7 +21,10 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var configFilePath = fmt.Sprintf("%s/.aws/roles", os.Getenv("HOME"))
+var (
+	configFilePath = fmt.Sprintf("%s/.aws/roles", os.Getenv("HOME"))
+	roleArnRe      = regexp.MustCompile(`^arn:aws:iam::(.+):role/([^/]+)(/.+)?$`)
+)
 
 func usage() {
 	fmt.Fprintf(os.Stderr, "Usage: %s <role> [<command> <args...>]\n", os.Args[0])
@@ -55,7 +59,6 @@ func main() {
 		os.Exit(1)
 	}
 
-
 	stscreds.DefaultDuration = *duration
 
 	role := argv[0]
@@ -63,7 +66,10 @@ func main() {
 
 	// Load credentials from configFilePath if it exists, else use regular AWS config
 	var creds *credentials.Value
-	if _, err := os.Stat(configFilePath); err == nil {
+	var err error
+	if roleArnRe.MatchString(role) {
+		creds, err = assumeRole(role, "", *duration)
+	} else if _, err = os.Stat(configFilePath); err == nil {
 		fmt.Fprintf(os.Stderr, "WARNING: using deprecated role file (%s), switch to config file"+
 			" (https://docs.aws.amazon.com/cli/latest/userguide/cli-roles.html)\n",
 			configFilePath)
@@ -72,25 +78,15 @@ func main() {
 
 		roleConfig, ok := config[role]
 		if !ok {
-			must(fmt.Errorf("%s not in ~/.aws/roles", role))
-		}
-
-		if os.Getenv("ASSUMED_ROLE") != "" {
-			// Clear out any previously set AWS_ environment variables so
-			// they aren't used by this call
-			cleanEnv()
+			must(fmt.Errorf("%s not in %s", role, configFilePath))
 		}
 
 		creds, err = assumeRole(roleConfig.Role, roleConfig.MFA, *duration)
-		must(err)
-
 	} else {
-		if os.Getenv("ASSUMED_ROLE") != "" {
-			cleanEnv()
-		}
 		creds, err = assumeProfile(role)
-		must(err)
 	}
+
+	must(err)
 
 	if len(args) == 0 {
 		switch *format {
@@ -105,15 +101,8 @@ func main() {
 		return
 	}
 
-	err := execWithCredentials(args, creds)
+	err = execWithCredentials(args, creds)
 	must(err)
-}
-
-func cleanEnv() {
-	os.Unsetenv("AWS_ACCESS_KEY_ID")
-	os.Unsetenv("AWS_SECRET_ACCESS_KEY")
-	os.Unsetenv("AWS_SESSION_TOKEN")
-	os.Unsetenv("AWS_SECURITY_TOKEN")
 }
 
 func execWithCredentials(argv []string, creds *credentials.Value) error {
