@@ -99,6 +99,11 @@ export ASSUMED_ROLE="prod"
 # eval $(assume-role prod)
 ```
 
+Create an alias to avoid typing ```eval $(assume-role prod)```     
+```alias assume-role='function(){eval $(assume-role $@);}'```
+
+
+
 Or windows PowerShell:
 ```cmd
 $env:AWS_ACCESS_KEY_ID="ASIAI....UOCA"
