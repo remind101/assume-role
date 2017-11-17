@@ -110,10 +110,15 @@ $env:ASSUMED_ROLE="prod"
 # assume-role.exe prod | Invoke-Expression
 ```
 
-If you use `eval $(assume-role)` frequently, you may want to create a bash alias for it:
+If you use `eval $(assume-role)` frequently, you may want to create a alias for it:
 
-```bash
-alias assume-role='function(){eval $(assume-role $@);}'
+* zsh
+```shell
+alias assume-role='function(){eval $(command assume-role $@);}'
+```
+* bash
+```shell
+function assume-role { eval $( $(which assume-role) $@); }
 ```
 
 ## TODO
