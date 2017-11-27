@@ -36,6 +36,8 @@ func init() {
 }
 
 func defaultFormat() string {
+	var shell = os.Getenv("SHELL")
+
 	switch runtime.GOOS {
 	case "windows":
 		if os.Getenv("SHELL") == "" {
@@ -43,6 +45,9 @@ func defaultFormat() string {
 		}
 		fallthrough
 	default:
+		if strings.HasSuffix(shell, "fish") {
+			return "fish"
+		}
 		return "bash"
 	}
 }
@@ -94,6 +99,8 @@ func main() {
 			printPowerShellCredentials(role, creds)
 		case "bash":
 			printCredentials(role, creds)
+		case "fish":
+			printFishCredentials(role, creds)
 		default:
 			flag.Usage()
 			os.Exit(1)
@@ -130,6 +137,18 @@ func printCredentials(role string, creds *credentials.Value) {
 	fmt.Printf("export ASSUMED_ROLE=\"%s\"\n", role)
 	fmt.Printf("# Run this to configure your shell:\n")
 	fmt.Printf("# eval $(%s)\n", strings.Join(os.Args, " "))
+}
+
+// printFishCredentials prints the credentials in a way that can easily be sourced
+// with fish.
+func printFishCredentials(role string, creds *credentials.Value) {
+	fmt.Printf("set -gx AWS_ACCESS_KEY_ID \"%s\";\n", creds.AccessKeyID)
+	fmt.Printf("set -gx AWS_SECRET_ACCESS_KEY \"%s\";\n", creds.SecretAccessKey)
+	fmt.Printf("set -gx AWS_SESSION_TOKEN \"%s\";\n", creds.SessionToken)
+	fmt.Printf("set -gx AWS_SECURITY_TOKEN \"%s\";\n", creds.SessionToken)
+	fmt.Printf("set -gx ASSUMED_ROLE \"%s\";\n", role)
+	fmt.Printf("# Run this to configure your shell:\n")
+	fmt.Printf("# eval (%s)\n", strings.Join(os.Args, " "))
 }
 
 // printPowerShellCredentials prints the credentials in a way that can easily be sourced
