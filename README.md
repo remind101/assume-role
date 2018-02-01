@@ -114,11 +114,11 @@ If you use `eval $(assume-role)` frequently, you may want to create a alias for 
 
 * zsh
 ```shell
-alias assume-role='function(){eval $(command assume-role $@);}'
+alias assume-role='function(){eval $(command assume-role $1) && shift; $@}'
 ```
 * bash
 ```shell
-function assume-role { eval $( $(which assume-role) $@); }
+function assume-role { eval $( $(which assume-role) $1) && shift; $@ }
 ```
 
 ## TODO
