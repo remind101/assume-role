@@ -125,6 +125,7 @@ func execWithCredentials(argv []string, creds *credentials.Value, region *string
 	os.Setenv("AWS_SECURITY_TOKEN", creds.SessionToken)
 	if region != nil {
 		os.Setenv("AWS_DEFAULT_REGION", *region)
+		os.Setenv("AWS_REGION", *region)
 	} 
 
 	env := os.Environ()
@@ -141,6 +142,7 @@ func printCredentials(role string, creds *credentials.Value, region *string) {
 	fmt.Printf("export ASSUMED_ROLE=\"%s\"\n", role)
 	if region != nil {
 		fmt.Printf("export AWS_DEFAULT_REGION=\"%s\"\n", *region)
+		fmt.Printf("export AWS_REGION=\"%s\"\n", *region)
 	} 
 	fmt.Printf("# Run this to configure your shell:\n")
 	fmt.Printf("# eval $(%s)\n", strings.Join(os.Args, " "))
@@ -156,6 +158,7 @@ func printFishCredentials(role string, creds *credentials.Value, region *string)
 	fmt.Printf("set -gx ASSUMED_ROLE \"%s\";\n", role)
 	if region != nil {
 		fmt.Printf("set -gx AWS_DEFAULT_REGION \"%s\";\n", *region)
+		fmt.Printf("set -gx AWS_REGION \"%s\";\n", *region)
 	} 
 	fmt.Printf("# Run this to configure your shell:\n")
 	fmt.Printf("# eval (%s)\n", strings.Join(os.Args, " "))
@@ -171,6 +174,7 @@ func printPowerShellCredentials(role string, creds *credentials.Value, region *s
 	fmt.Printf("$env:ASSUMED_ROLE=\"%s\"\n", role)
 	if region != nil {
 		fmt.Printf("$env:AWS_DEFAULT_REGION=\"%s\"\n", *region)
+		fmt.Printf("$env:AWS_REGION=\"%s\"\n", *region)
 	} 
 	fmt.Printf("# Run this to configure your shell:\n")
 	fmt.Printf("# %s | Invoke-Expression \n", strings.Join(os.Args, " "))
