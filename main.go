@@ -108,11 +108,11 @@ func main() {
 		return
 	}
 
-	err = execWithCredentials(args, creds)
+	err = execWithCredentials(role, args, creds)
 	must(err)
 }
 
-func execWithCredentials(argv []string, creds *credentials.Value) error {
+func execWithCredentials(role string, argv []string, creds *credentials.Value) error {
 	argv0, err := exec.LookPath(argv[0])
 	if err != nil {
 		return err
@@ -122,6 +122,7 @@ func execWithCredentials(argv []string, creds *credentials.Value) error {
 	os.Setenv("AWS_SECRET_ACCESS_KEY", creds.SecretAccessKey)
 	os.Setenv("AWS_SESSION_TOKEN", creds.SessionToken)
 	os.Setenv("AWS_SECURITY_TOKEN", creds.SessionToken)
+	os.Setenv("ASSUMED_ROLE", role)
 
 	env := os.Environ()
 	return syscall.Exec(argv0, argv, env)
