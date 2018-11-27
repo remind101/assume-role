@@ -183,7 +183,9 @@ func assumeProfile(profile string) (*credentials.Value, error) {
 
 // assumeRole assumes the given role and returns the temporary STS credentials.
 func assumeRole(role, mfa string, duration time.Duration) (*credentials.Value, error) {
-	sess := session.Must(session.NewSession())
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	}))
 
 	svc := sts.New(sess)
 
