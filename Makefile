@@ -24,7 +24,6 @@ clean:
 
 test: deps
 	go test -race ./...
-	#go test -race $(shell go list ./... | grep -v /vendor/)
 
 docker:
 	docker build --tag assume-role .
