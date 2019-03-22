@@ -1,7 +1,12 @@
-FROM golang:1.12-stretch
+FROM golang:1.12-stretch as build
 
-WORKDIR /app
-COPY . ./src
+WORKDIR /src
+COPY . .
 
-RUN cd src && make bin
-RUN mkdir bin && cp -ai src/bin/* bin/ && chmod +x bin/*
+RUN make test bin
+RUN make bins
+
+FROM debian:stretch
+
+COPY --from=build /src/bin/* /usr/local/bin/
+RUN chmod 555 /usr/local/bin/assume-role*
