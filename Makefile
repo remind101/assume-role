@@ -1,3 +1,5 @@
+DOCKER_TAG = assume-role
+
 .PHONY: all test clean bins deps docker
 
 bin: bin/assume-role
@@ -26,8 +28,4 @@ test: deps
 	go test -race ./...
 
 docker:
-	docker build --tag assume-role .
-
-docker-test: docker
-	docker run -it assume-role /bin/bash -c 'cd src; make test'
-
+	docker build --tag $(DOCKER_TAG) .
