@@ -27,7 +27,7 @@ var (
 )
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "Usage: %s <role> [<command> <args...>]\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "Usage: %s [<args...>] <role> [<command> <command args...>]\n", os.Args[0])
 	flag.PrintDefaults()
 }
 
