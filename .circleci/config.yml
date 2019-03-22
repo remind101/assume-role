@@ -14,3 +14,4 @@ jobs:
 
       # specify any bash command here prefixed with `run: `
       - run: make test
+      - run: make bin
