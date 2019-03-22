@@ -23,7 +23,12 @@ clean:
 	rm -rf bin/*
 
 test: deps
-	go test -race $(shell go list ./... | grep -v /vendor/)
+	go test -race ./...
+	#go test -race $(shell go list ./... | grep -v /vendor/)
 
 docker:
 	docker build --tag assume-role .
+
+docker-test: docker
+	docker run -it assume-role /bin/bash -c 'cd src; make test'
+
