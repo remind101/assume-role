@@ -1,4 +1,4 @@
-module github.com/remind101/assume-role
+module assume-role
 
 go 1.12
 
