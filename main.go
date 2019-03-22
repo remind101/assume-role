@@ -56,6 +56,7 @@ func main() {
 	var (
 		duration = flag.Duration("duration", time.Hour, "The duration that the credentials will be valid for.")
 		format   = flag.String("format", defaultFormat(), "Format can be 'bash' or 'powershell'.")
+		reset    = flag.Bool("reset", false, "Reset AWS Env-var tokens (internally) before retrieving new credentials.")
 	)
 	flag.Parse()
 	argv := flag.Args()
@@ -68,6 +69,10 @@ func main() {
 
 	role := argv[0]
 	args := argv[1:]
+
+	if *reset {
+		resetEnvVars()
+	}
 
 	// Load credentials from configFilePath if it exists, else use regular AWS config
 	var creds *credentials.Value
@@ -242,6 +247,14 @@ func loadConfig() (config, error) {
 
 	roleConfig := make(config)
 	return roleConfig, yaml.Unmarshal(raw, &roleConfig)
+}
+
+func resetEnvVars() {
+	os.Unsetenv("AWS_ACCESS_KEY_ID")
+	os.Unsetenv("AWS_SECRET_ACCESS_KEY")
+	os.Unsetenv("AWS_SESSION_TOKEN")
+	os.Unsetenv("AWS_SECURITY_TOKEN")
+	os.Unsetenv("ASSUMED_ROLE")
 }
 
 func must(err error) {
