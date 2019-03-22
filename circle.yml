@@ -1,3 +1,4 @@
+# Version 1
 machine:
   environment:
     GODIST: "go1.12.linux-amd64.tar.gz"
