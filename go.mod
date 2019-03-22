@@ -3,9 +3,11 @@ module assume-role
 go 1.12
 
 require (
-	github.com/aws/aws-sdk-go v0.0.0-20170405235232-0bbc97afc1bd
+	github.com/aws/aws-sdk-go v1.19.1
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-ini/ini v1.42.0 // indirect
-	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af // indirect
-	github.com/stretchr/testify v0.0.0-20161117074351-18a02ba4a312
-	gopkg.in/yaml.v2 v2.0.0-20150119185552-5d6f7e02b7cd
+	github.com/stretchr/objx v0.1.1 // indirect
+	github.com/stretchr/testify v1.3.0
+	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
+	gopkg.in/yaml.v2 v2.2.2
 )
