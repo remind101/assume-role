@@ -1,9 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func must(err error) {
@@ -13,7 +14,7 @@ func must(err error) {
 			os.Exit(1)
 		}
 
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		log.Errorf("%v", err)
 		os.Exit(1)
 	}
 }

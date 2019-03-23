@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	log "github.com/sirupsen/logrus"
 )
 
 var format *string
@@ -38,7 +39,7 @@ func printCredentials(role string, creds *credentials.Value) {
 	case "powershell":
 		printPowerShellCredentials(role, creds)
 	case "bash":
-		printCredentials(role, creds)
+		printBashCredentials(role, creds)
 	case "fish":
 		printFishCredentials(role, creds)
 	default:
@@ -50,6 +51,7 @@ func printCredentials(role string, creds *credentials.Value) {
 // printCredentials prints the credentials in a way that can easily be sourced
 // with bash.
 func printBashCredentials(role string, creds *credentials.Value) {
+	log.Debug("Bash credentials...")
 	fmt.Printf("export AWS_ACCESS_KEY_ID=\"%s\"\n", creds.AccessKeyID)
 	fmt.Printf("export AWS_SECRET_ACCESS_KEY=\"%s\"\n", creds.SecretAccessKey)
 	fmt.Printf("export AWS_SESSION_TOKEN=\"%s\"\n", creds.SessionToken)
@@ -62,6 +64,7 @@ func printBashCredentials(role string, creds *credentials.Value) {
 // printFishCredentials prints the credentials in a way that can easily be sourced
 // with fish.
 func printFishCredentials(role string, creds *credentials.Value) {
+	log.Debug("Fish credentials...")
 	fmt.Printf("set -gx AWS_ACCESS_KEY_ID \"%s\";\n", creds.AccessKeyID)
 	fmt.Printf("set -gx AWS_SECRET_ACCESS_KEY \"%s\";\n", creds.SecretAccessKey)
 	fmt.Printf("set -gx AWS_SESSION_TOKEN \"%s\";\n", creds.SessionToken)
@@ -74,6 +77,7 @@ func printFishCredentials(role string, creds *credentials.Value) {
 // printPowerShellCredentials prints the credentials in a way that can easily be sourced
 // with Windows powershell using Invoke-Expression.
 func printPowerShellCredentials(role string, creds *credentials.Value) {
+	log.Debug("Powershell credentials...")
 	fmt.Printf("$env:AWS_ACCESS_KEY_ID=\"%s\"\n", creds.AccessKeyID)
 	fmt.Printf("$env:AWS_SECRET_ACCESS_KEY=\"%s\"\n", creds.SecretAccessKey)
 	fmt.Printf("$env:AWS_SESSION_TOKEN=\"%s\"\n", creds.SessionToken)

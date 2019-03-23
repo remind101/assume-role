@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 
@@ -32,6 +33,7 @@ func readTokenCode() (string, error) {
 
 // loadConfig loads the ~/.aws/roles file.
 func loadConfig() (config, error) {
+	log.WithField("configFilePath", configFilePath).Debug("Reading config...")
 	raw, err := ioutil.ReadFile(configFilePath)
 	if err != nil {
 		return nil, err

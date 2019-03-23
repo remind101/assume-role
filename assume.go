@@ -11,6 +11,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -29,9 +31,9 @@ func loadCredentials(role string) (*credentials.Value, error) {
 	}
 
 	if _, err := os.Stat(configFilePath); err == nil {
-		fmt.Fprintf(os.Stderr, "WARNING: using deprecated role file (%s), switch to config file"+
-			" (https://docs.aws.amazon.com/cli/latest/userguide/cli-roles.html)\n",
-			configFilePath)
+		log.WithField("configFilePath", configFilePath).Warn(
+			"Using deprecated role file, switch to config file" +
+				" (https://docs.aws.amazon.com/cli/latest/userguide/cli-roles.html)")
 
 		config, err := loadConfig()
 		if err != nil {
@@ -52,6 +54,7 @@ func loadCredentials(role string) (*credentials.Value, error) {
 // (https://docs.aws.amazon.com/cli/latest/userguide/cli-roles.html) and returns the temporary STS
 // credentials.
 func assumeProfile(profile string) (*credentials.Value, error) {
+	log.Debug("Assuming role via named profile")
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		Profile:                 profile,
 		SharedConfigState:       session.SharedConfigEnable,
@@ -67,6 +70,7 @@ func assumeProfile(profile string) (*credentials.Value, error) {
 
 // assumeRole assumes the given role and returns the temporary STS credentials.
 func assumeRole(role, mfa string, duration time.Duration) (*credentials.Value, error) {
+	log.Debug("Assume role via temporary STS credentials")
 	sess := session.Must(session.NewSession())
 
 	svc := sts.New(sess)
