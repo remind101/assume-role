@@ -1,19 +1,31 @@
-.PHONY: test clean bin
+DOCKER_TAG = assume-role
 
-bin/assume-role: *.go
+.PHONY: all test clean bins deps docker
+
+bin: bin/assume-role
+
+bins: bin/assume-role-Linux bin/assume-role-Darwin bin/assume-role-Windows.exe 
+
+bin/assume-role: deps *.go
 	go build -o $@ .
-
-bin: bin/assume-role-Linux bin/assume-role-Darwin bin/assume-role-Windows.exe 
-
-bin/assume-role-Linux: *.go
+bin/assume-role-Linux: deps *.go
 	env GOOS=linux go build -o $@ .
-bin/assume-role-Darwin: *.go
+bin/assume-role-Darwin: deps *.go
 	env GOOS=darwin go build -o $@ .
-bin/assume-role-Windows.exe: *.go
+bin/assume-role-Windows.exe: deps *.go
 	env GOOS=windows go build -o $@ .
+
+deps:
+	go get -v -d ./...
+
+update-deps:
+	go get -v -u -d ./...
 
 clean:
 	rm -rf bin/*
 
-test:
-	go test -race $(shell go list ./... | grep -v /vendor/)
+test: deps
+	go test -race ./...
+
+docker:
+	docker build --tag $(DOCKER_TAG) .
