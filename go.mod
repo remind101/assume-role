@@ -1,4 +1,4 @@
-module github.com/mexisme/assume-role
+module github.com/remind101/assume-role
 
 go 1.12
 
