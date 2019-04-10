@@ -86,3 +86,48 @@ func printPowerShellCredentials(role string, creds *credentials.Value) {
 	fmt.Printf("# Run this to configure your shell:\n")
 	fmt.Printf("# %s | Invoke-Expression \n", strings.Join(os.Args, " "))
 }
+
+func unsetCredentials() {
+	switch *format {
+	case "powershell":
+		unsetPowerShellCredentials()
+	case "bash":
+		unsetBashCredentials()
+	case "fish":
+		unsetFishCredentials()
+	default:
+		flag.Usage()
+		os.Exit(1)
+	}
+}
+
+// unsetCredentials prints the credentials in a way that can easily be sourced
+// with bash.
+func unsetBashCredentials() {
+	log.Debug("Bash credentials...")
+	fmt.Println("unset AWS_ACCESS_KEY_ID")
+	fmt.Println("unset AWS_SECRET_ACCESS_KEY")
+	fmt.Println("unset AWS_SESSION_TOKEN")
+	fmt.Println("unset AWS_SECURITY_TOKEN")
+	fmt.Println("unset ASSUMED_ROLE")
+}
+
+// printFishCredentials prints the credentials in a way that can easily be sourced
+// with fish.
+func unsetFishCredentials() {
+	log.Debug("Fish credentials...")
+	fmt.Println("set --erase AWS_ACCESS_KEY_ID;")
+	fmt.Println("set --erase AWS_SECRET_ACCESS_KEY;")
+	fmt.Println("set --erase AWS_SESSION_TOKEN;")
+	fmt.Println("set --erase AWS_SECURITY_TOKEN;")
+}
+
+// printPowerShellCredentials prints the credentials in a way that can easily be sourced
+// with Windows powershell using Invoke-Expression.
+func unsetPowerShellCredentials() {
+	log.Debug("Powershell credentials...")
+	fmt.Println("Remove-Variable -name AWS_ACCESS_KEY_ID")
+	fmt.Println("Remove-Variable -name AWS_SECRET_ACCESS_KEY")
+	fmt.Println("Remove-Variable -name AWS_SESSION_TOKEN")
+	fmt.Println("Remove-Variable -name AWS_SECURITY_TOKEN")
+}
