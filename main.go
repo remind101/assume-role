@@ -34,6 +34,10 @@ func main() {
 	log.Debug("Starting...")
 	argv := flag.Args()
 	if len(argv) < 1 {
+		if *reset {
+			unsetCredentials()
+			return
+		}
 		flag.Usage()
 		os.Exit(1)
 	}

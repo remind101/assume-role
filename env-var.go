@@ -10,7 +10,7 @@ import (
 var reset *bool
 
 func init() {
-	reset = flag.Bool("reset", false, "Reset AWS Env-var tokens (internally) before retrieving new credentials.")
+	reset = flag.Bool("reset", false, "If a profile is provided: internally reset AWS Env-var tokens before retrieving new credentials.\nIf not: output the Env-var reset commands.")
 }
 
 func resetEnvVars() {
