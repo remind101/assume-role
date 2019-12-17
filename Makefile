@@ -6,14 +6,14 @@ bin/assume-role: *.go
 bin: bin/assume-role-Linux bin/assume-role-Darwin bin/assume-role-Windows.exe 
 
 bin/assume-role-Linux: *.go
-	env GOOS=linux go build -o $@ .
+	docker run --env GOOS=linux --volume ${PWD}:/go/assume-role --workdir /go/assume-role golang:1.13 go build -mod=vendor -o ./bin/assume-role-Linux
 bin/assume-role-Darwin: *.go
-	env GOOS=darwin go build -o $@ .
+	docker run --env GOOS=darwin --volume ${PWD}:/go/assume-role --workdir /go/assume-role golang:1.13 go build -mod=vendor -o ./bin/assume-role-Darwin
 bin/assume-role-Windows.exe: *.go
-	env GOOS=windows go build -o $@ .
+	docker run --env GOOS=windows --volume ${PWD}:/go/assume-role --workdir /go/assume-role  golang:1.13 go build -mod=vendor -o ./bin/assume-role-Windows.exe
 
 clean:
 	rm -rf bin/*
 
 test:
-	go test -race $(shell go list ./... | grep -v /vendor/)
+	docker run --env TZ=America/New_York --volume ${PWD}:/go/assume-role --workdir /go/assume-role  golang:1.13 go test -mod=vendor -v .
