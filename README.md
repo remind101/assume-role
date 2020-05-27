@@ -110,7 +110,8 @@ export PROMPT_COMMAND="${PROMPT_COMMAND} print_assumed_role"
 ```
 
 This will make bash prompt to show assumed role configuration
-and its expiration time.
+and its expiration time, as shown below:
+
 ```
 [vpc-thlprod, Wed 17:41] YOUR_REGULAR_BASH_PROMPT
 ```
