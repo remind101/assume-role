@@ -102,15 +102,21 @@ print_assumed_role(){
     fi
 }
 
-if [ ! -z "${PROMPT_COMMAND}" ]; then
-    PROMPT_COMMAND="${PROMPT_COMMAND} ;"
-fi
+setup_default_prompt(){
 
-export PROMPT_COMMAND="${PROMPT_COMMAND} print_assumed_role"
+    if [ ! -z "${PROMPT_COMMAND}" ]; then
+        PROMPT_COMMAND="${PROMPT_COMMAND} ;"
+    fi
+    export PROMPT_COMMAND="${PROMPT_COMMAND} print_assumed_role"
+}
+
+# at the end of ~/.bash_profile
+setup_default_prompt
 ```
 
 This will make bash prompt to show assumed role configuration
-and its expiration time.
+and its expiration time, as shown below:
+
 ```
 [vpc-thlprod, Wed 17:41] YOUR_REGULAR_BASH_PROMPT
 ```
