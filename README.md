@@ -85,7 +85,7 @@ function assume-role(){
     unset AWS_SESSION_TOKEN
     unset AWS_SECURITY_TOKEN
     unset ASSUMED_ROLE
-    eval $(assume-role $@)
+    eval $(/usr/local/bin/assume-role $@)
 }
 
 print_assumed_role(){
