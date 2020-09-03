@@ -86,6 +86,11 @@ function assume-role(){
     unset AWS_SECURITY_TOKEN
     unset ASSUMED_ROLE
     eval $(/usr/local/bin/assume-role $@)
+    export TF_VAR_aws_access_key=${AWS_ACCESS_KEY_ID}
+    export TF_VAR_aws_secret_key=${AWS_SECRET_ACCESS_KEY}
+    export TF_VAR_aws_session_token=${AWS_SESSION_TOKEN}
+    export AWS_ACCESS_KEY=${TF_VAR_aws_access_key}
+    export AWS_SECRET_KEY=${TF_VAR_aws_secret_key}
 }
 
 print_assumed_role(){
