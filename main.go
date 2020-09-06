@@ -72,8 +72,9 @@ func main() {
 	// Load credentials from configFilePath if it exists, else use regular AWS config
 	var creds *credentials.Value
 	var err error
+	var expiration *time.Time
 	if roleArnRe.MatchString(role) {
-		creds, err = assumeRole(role, "", *duration)
+		creds, expiration, err = assumeRole(role, "", *duration)
 	} else if _, err = os.Stat(configFilePath); err == nil {
 		fmt.Fprintf(os.Stderr, "WARNING: using deprecated role file (%s), switch to config file"+
 			" (https://docs.aws.amazon.com/cli/latest/userguide/cli-roles.html)\n",
@@ -86,9 +87,9 @@ func main() {
 			must(fmt.Errorf("%s not in %s", role, configFilePath))
 		}
 
-		creds, err = assumeRole(roleConfig.Role, roleConfig.MFA, *duration)
+		creds, expiration, err = assumeRole(roleConfig.Role, roleConfig.MFA, *duration)
 	} else {
-		creds, err = assumeProfile(role)
+		creds, expiration, err = assumeProfile(role)
 	}
 
 	must(err)
@@ -96,11 +97,11 @@ func main() {
 	if len(args) == 0 {
 		switch *format {
 		case "powershell":
-			printPowerShellCredentials(role, creds)
+			printPowerShellCredentials(role, creds, expiration)
 		case "bash":
-			printCredentials(role, creds)
+			printCredentials(role, creds, expiration)
 		case "fish":
-			printFishCredentials(role, creds)
+			printFishCredentials(role, creds, expiration)
 		default:
 			flag.Usage()
 			os.Exit(1)
@@ -128,38 +129,51 @@ func execWithCredentials(role string, argv []string, creds *credentials.Value) e
 	return syscall.Exec(argv0, argv, env)
 }
 
+// given that max time for a asession role is 12 hours
+// just show DayOfWeek HH:MM, example: "Mon 12:01" in the local time zone
+func formatExpirationTime(t *time.Time) string {
+	if t == nil {
+		return ""
+	}
+	l := t.Local()
+	return fmt.Sprintf("%s %02d:%02d", l.Weekday().String()[0:3], l.Hour(), l.Minute())
+}
+
 // printCredentials prints the credentials in a way that can easily be sourced
 // with bash.
-func printCredentials(role string, creds *credentials.Value) {
+func printCredentials(role string, creds *credentials.Value, expiration *time.Time) {
 	fmt.Printf("export AWS_ACCESS_KEY_ID=\"%s\"\n", creds.AccessKeyID)
 	fmt.Printf("export AWS_SECRET_ACCESS_KEY=\"%s\"\n", creds.SecretAccessKey)
 	fmt.Printf("export AWS_SESSION_TOKEN=\"%s\"\n", creds.SessionToken)
 	fmt.Printf("export AWS_SECURITY_TOKEN=\"%s\"\n", creds.SessionToken)
 	fmt.Printf("export ASSUMED_ROLE=\"%s\"\n", role)
+	fmt.Printf("export AWS_SESSION_EXPIRATION=\"%s\"\n", formatExpirationTime(expiration))
 	fmt.Printf("# Run this to configure your shell:\n")
 	fmt.Printf("# eval $(%s)\n", strings.Join(os.Args, " "))
 }
 
 // printFishCredentials prints the credentials in a way that can easily be sourced
 // with fish.
-func printFishCredentials(role string, creds *credentials.Value) {
+func printFishCredentials(role string, creds *credentials.Value, expiration *time.Time) {
 	fmt.Printf("set -gx AWS_ACCESS_KEY_ID \"%s\";\n", creds.AccessKeyID)
 	fmt.Printf("set -gx AWS_SECRET_ACCESS_KEY \"%s\";\n", creds.SecretAccessKey)
 	fmt.Printf("set -gx AWS_SESSION_TOKEN \"%s\";\n", creds.SessionToken)
 	fmt.Printf("set -gx AWS_SECURITY_TOKEN \"%s\";\n", creds.SessionToken)
 	fmt.Printf("set -gx ASSUMED_ROLE \"%s\";\n", role)
+	fmt.Printf("set -gx AWS_SESSION_EXPIRATION \"%s\"", formatExpirationTime(expiration))
 	fmt.Printf("# Run this to configure your shell:\n")
 	fmt.Printf("# eval (%s)\n", strings.Join(os.Args, " "))
 }
 
 // printPowerShellCredentials prints the credentials in a way that can easily be sourced
 // with Windows powershell using Invoke-Expression.
-func printPowerShellCredentials(role string, creds *credentials.Value) {
+func printPowerShellCredentials(role string, creds *credentials.Value, expiration *time.Time) {
 	fmt.Printf("$env:AWS_ACCESS_KEY_ID=\"%s\"\n", creds.AccessKeyID)
 	fmt.Printf("$env:AWS_SECRET_ACCESS_KEY=\"%s\"\n", creds.SecretAccessKey)
 	fmt.Printf("$env:AWS_SESSION_TOKEN=\"%s\"\n", creds.SessionToken)
 	fmt.Printf("$env:AWS_SECURITY_TOKEN=\"%s\"\n", creds.SessionToken)
 	fmt.Printf("$env:ASSUMED_ROLE=\"%s\"\n", role)
+	fmt.Printf("$env:AWS_SESSION_EXPIRATION=\"%s\"\n", formatExpirationTime(expiration))
 	fmt.Printf("# Run this to configure your shell:\n")
 	fmt.Printf("# %s | Invoke-Expression \n", strings.Join(os.Args, " "))
 }
@@ -167,7 +181,7 @@ func printPowerShellCredentials(role string, creds *credentials.Value) {
 // assumeProfile assumes the named profile which must exist in ~/.aws/config
 // (https://docs.aws.amazon.com/cli/latest/userguide/cli-roles.html) and returns the temporary STS
 // credentials.
-func assumeProfile(profile string) (*credentials.Value, error) {
+func assumeProfile(profile string) (*credentials.Value, *time.Time, error) {
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		Profile:                 profile,
 		SharedConfigState:       session.SharedConfigEnable,
@@ -176,13 +190,17 @@ func assumeProfile(profile string) (*credentials.Value, error) {
 
 	creds, err := sess.Config.Credentials.Get()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return &creds, nil
+	expiration, err := sess.Config.Credentials.ExpiresAt()
+	if err != nil {
+		return nil, nil, err
+	}
+	return &creds, &expiration, nil
 }
 
 // assumeRole assumes the given role and returns the temporary STS credentials.
-func assumeRole(role, mfa string, duration time.Duration) (*credentials.Value, error) {
+func assumeRole(role, mfa string, duration time.Duration) (*credentials.Value, *time.Time, error) {
 	sess := session.Must(session.NewSession())
 
 	svc := sts.New(sess)
@@ -196,7 +214,7 @@ func assumeRole(role, mfa string, duration time.Duration) (*credentials.Value, e
 		params.SerialNumber = aws.String(mfa)
 		token, err := readTokenCode()
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		params.TokenCode = aws.String(token)
 	}
@@ -204,15 +222,14 @@ func assumeRole(role, mfa string, duration time.Duration) (*credentials.Value, e
 	resp, err := svc.AssumeRole(params)
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var creds credentials.Value
 	creds.AccessKeyID = *resp.Credentials.AccessKeyId
 	creds.SecretAccessKey = *resp.Credentials.SecretAccessKey
 	creds.SessionToken = *resp.Credentials.SessionToken
-
-	return &creds, nil
+	return &creds, resp.Credentials.Expiration, nil
 }
 
 type roleConfig struct {

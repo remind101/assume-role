@@ -2,23 +2,14 @@ This tool will request and set temporary credentials in your shell environment v
 
 ## Installation
 
-On OS X, the best way to get it is to use homebrew:
-
-```bash
-brew install remind101/formulae/assume-role
+To install version 1.0.0:
 ```
-
-If you have a working Go 1.6/1.7 environment:
-
-```bash
-$ go get -u github.com/remind101/assume-role
-```
-
-On Windows with PowerShell, you can use [scoop.sh](http://scoop.sh/)
-
-```cmd
-$ scoop bucket add extras
-$ scoop install assume-role
+cd /tmp/
+curl -L -o assume-role https://github.com/roadtrippers/assume-role/releases/download/1.0.0/assume-role-Darwin
+echo 'dff2c8219d8f1ccf4574a5537bd04bf1c9f70f032d243e411b9f3ba724deead4  ./assume-role' > ./assume-role.sha256
+shasum -c assume-role.sha256 || echo "DO NOT PROCEED. SHASUM DID NOT MATCH"
+mv ./assume-role /usr/local/bin
+chmod +x /usr/local/bin/assume-role
 ```
 
 ## Configuration
@@ -86,41 +77,51 @@ $ assume-role prod aws iam get-user
 MFA code: 123456
 ```
 
-If no command is provided, `assume-role` will output the temporary security credentials:
+Useful bash profile setup:
+```
+function assume-role(){
+    unset AWS_ACCESS_KEY_ID
+    unset AWS_SECRET_ACCESS_KEY
+    unset AWS_SESSION_TOKEN
+    unset AWS_SECURITY_TOKEN
+    unset ASSUMED_ROLE
+    eval $(/usr/local/bin/assume-role $@)
+    export TF_VAR_aws_access_key=${AWS_ACCESS_KEY_ID}
+    export TF_VAR_aws_secret_key=${AWS_SECRET_ACCESS_KEY}
+    export TF_VAR_aws_session_token=${AWS_SESSION_TOKEN}
+    export AWS_ACCESS_KEY=${TF_VAR_aws_access_key}
+    export AWS_SECRET_KEY=${TF_VAR_aws_secret_key}
+}
 
-```bash
-$ assume-role prod
-export AWS_ACCESS_KEY_ID="ASIAI....UOCA"
-export AWS_SECRET_ACCESS_KEY="DuH...G1d"
-export AWS_SESSION_TOKEN="AQ...1BQ=="
-export AWS_SECURITY_TOKEN="AQ...1BQ=="
-export ASSUMED_ROLE="prod"
-# Run this to configure your shell:
-# eval $(assume-role prod)
+print_assumed_role(){
+    if test ! -z "${ASSUMED_ROLE}"; then
+	echo -n '['
+	echo -n $ASSUMED_ROLE
+
+
+	if test ! -z "${AWS_SESSION_EXPIRATION}"; then
+	    echo -n ", ${AWS_SESSION_EXPIRATION}"
+	fi
+
+	echo -n '] '
+    fi
+}
+
+setup_default_prompt(){
+
+    if [ ! -z "${PROMPT_COMMAND}" ]; then
+        PROMPT_COMMAND="${PROMPT_COMMAND} ;"
+    fi
+    export PROMPT_COMMAND="${PROMPT_COMMAND} print_assumed_role"
+}
+
+# at the end of ~/.bash_profile
+setup_default_prompt
 ```
 
-Or windows PowerShell:
-```cmd
-$env:AWS_ACCESS_KEY_ID="ASIAI....UOCA"
-$env:AWS_SECRET_ACCESS_KEY="DuH...G1d"
-$env:AWS_SESSION_TOKEN="AQ...1BQ=="
-$env:AWS_SECURITY_TOKEN="AQ...1BQ=="
-$env:ASSUMED_ROLE="prod"
-# Run this to configure your shell:
-# assume-role.exe prod | Invoke-Expression
+This will make bash prompt to show assumed role configuration
+and its expiration time, as shown below:
+
 ```
-
-If you use `eval $(assume-role)` frequently, you may want to create a alias for it:
-
-* zsh
-```shell
-alias assume-role='function(){eval $(command assume-role $@);}'
+[vpc-thlprod, Wed 17:41] YOUR_REGULAR_BASH_PROMPT
 ```
-* bash
-```shell
-function assume-role { eval $( $(which assume-role) $@); }
-```
-
-## TODO
-
-* [ ] Cache credentials.
