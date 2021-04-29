@@ -23,7 +23,7 @@ import (
 
 var (
 	configFilePath = fmt.Sprintf("%s/.aws/roles", os.Getenv("HOME"))
-	roleArnRe      = regexp.MustCompile(`^arn:aws:iam::(.+):role/([^/]+)(/.+)?$`)
+	roleArnRe      = regexp.MustCompile(`^arn:aws(-((cn)|(us-gov)))?:iam::(.+):role/([^/]+)(/.+)?$`)
 )
 
 func usage() {
