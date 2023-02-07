@@ -6,6 +6,11 @@
   };
 
   outputs = { self, nixpkgs, gomod2nix, flake-utils, ... }@inputs:
+    {
+      overlays.default = (final: prev: {
+        assume-role = final.callPackage ./. {};
+      });
+    } //
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
