@@ -1,0 +1,27 @@
+schema = 3
+
+[mod]
+  [mod."github.com/aws/aws-sdk-go"]
+    version = "v1.42.25"
+    hash = "sha256-9kS2BhJjFjg0i2ka6D/DPS0EonbgggYb7ZQaEVKTdso="
+  [mod."github.com/kr/pretty"]
+    version = "v0.1.0"
+    hash = "sha256-Fx+TaNrxW0VfzonT2jnd5MU09RRz7GJZkqAtJR6/pKI="
+  [mod."github.com/sirupsen/logrus"]
+    version = "v1.8.1"
+    hash = "sha256-vUIDlLXYBD74+JqdoSx+W3J6r5cOk63heo0ElsHizoM="
+  [mod."github.com/stretchr/testify"]
+    version = "v1.3.0"
+    hash = "sha256-+mSebBNccNcxbY462iKTNTWmd5ZuUkUqFebccn3EtIA="
+  [mod."golang.org/x/crypto"]
+    version = "v0.0.0-20200622213623-75b288015ac9"
+    hash = "sha256-QvFbJEm3gXs2NtaaREbkbAtdHpU4fqX+0C0EvTezdKM="
+  [mod."golang.org/x/sys"]
+    version = "v0.0.0-20211216021012-1d35b9e2eb4e"
+    hash = "sha256-q9nSttSlJMZ9rggzT0YwuWWdWrqtpU08eOCt3mcM27Y="
+  [mod."gopkg.in/check.v1"]
+    version = "v1.0.0-20180628173108-788fd7840127"
+    hash = "sha256-KsRJNTprd1UijnJusbHwQGM7Bdm45Jt/QL+cIUGNa2w="
+  [mod."gopkg.in/yaml.v2"]
+    version = "v2.4.0"
+    hash = "sha256-uVEGglIedjOIGZzHW4YwN1VoRSTK8o0eGZqzd+TNdd0="
