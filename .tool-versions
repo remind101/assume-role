@@ -3,3 +3,4 @@
 golang 1.20.2
 # https://github.com/goreleaser/goreleaser/releases
 goreleaser 1.16.1
+svu 1.10.2
