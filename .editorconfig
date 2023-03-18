@@ -1,0 +1,92 @@
+root = true
+
+; Unix-style newlines with a newline ending every file
+[*]
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = tab
+indent_size = 4
+max_line_length = 120
+
+; Makefiles
+[*Makefile*]
+indent_size = 2
+
+; Python
+[*.py]
+indent_style = space
+
+; Hy Language
+[*.hy]
+indent_style = space
+indent_size = 2
+
+[*.{scala,java,groovy,kt,kts,ktm}]
+indent_style = space
+indent_size = 2
+
+; Ruby
+[*.{rb,erb,haml,slim}]
+indent_style = space
+indent_size = 2
+
+; GoLang
+[*.go]
+indent_style = tab
+max_line_length = 120
+;
+; YAML
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+; YAML.GOTMPL
+[*.{yml,yaml}.gotmpl]
+indent_style = space
+indent_size = 2
+
+; terraform
+[*.{tf,tfvars}]
+max_line_length = 0
+indent_size = 2
+
+; Javascript, Typescript, json
+[*.{ts,js,json,vue}]
+indent_style = space
+indent_size = 2
+
+; TOML
+[*.{toml}]
+indent_style = space
+indent_size = 2
+
+; Markdown
+[*.{md,markdown}]
+max_line_length = 0
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = false
+
+; HTML
+[*.{html,css,scss,sass,less}]
+indent_style = space
+indent_size = 2
+
+; shell
+[*.{sh,bash,zsh,ksh},.zshrc,.bashrc]
+indent_style = space
+
+; Dockerfile
+[*Dockerfile*]
+indent_style = space
+indent_size = 2
+
+; Jenkins Grovy
+[*Jenkinsfile*]
+max_line_length = 0
+indent_style = space
+indent_size = 2
+
+[COMMIT_EDITMSG]
+max_line_length = 0

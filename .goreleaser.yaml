@@ -1,0 +1,94 @@
+# This is an example .goreleaser.yml file with some sensible defaults.
+# Make sure to check the documentation at https://goreleaser.com
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod tidy
+    - go mod vendor
+    # you may remove this if you don't need go generate
+    #- go generate ./...
+builds:
+  - env:
+      - CGO_ENABLED=0
+      - GOPROXY=https://proxy.golang.org go
+      - GO111MODULE=on
+    goos:
+      - linux
+      - windows
+      - darwin
+    ldflags:
+      - "-s -w -X github.com/isindir/git-get/version.Version=v{{.Version}} -X github.com/isindir/git-get/version.Commit={{.ShortCommit}} -X github.com/isindir/git-get/version.Time={{.CommitDate}}"
+brews:
+  - name: git-get
+    tap:
+      owner: isindir
+      name: homebrew-git-get
+      branch: master
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    commit_author:
+      name: Eriks Zelenka
+      email: isindir@users.sf.net
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }} - {{.ShortCommit}}"
+    folder: Formula
+    homepage: "https://github.com/isindir/git-get"
+    license: "MIT"
+    description: "Tool to clone/fetch project repositories an-mass using Gitfile configuration file. git-get can also generate Gitfile from github, gitlab or bitbucket, to have all repositories user has access to."
+    test: |
+      system "#{bin}/git-get", "version", "--long"
+release:
+  prerelease: auto
+
+  # Defaults to empty.
+  #extra_files:
+  #- glob: ./path/to/file.txt
+  #- glob: ./glob/**/to/**/file/**/*
+
+  header: |
+    > {{ .Date }}
+archives:
+  - format_overrides:
+      - goos: windows
+        format: zip
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+    #replacements:
+    #  darwin: Darwin
+    #  linux: Linux
+    #  windows: Windows
+    #  386: i386
+    #  amd64: x86_64
+    #  arm64: arm64
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+changelog:
+  use: github
+  sort: asc
+  groups:
+    - title: Features
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: 'Bug fixes'
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 1
+    - title: Component Upgrade
+      regexp: "^.*up[(\\w)]*:+.*$"
+      order: 2
+    - title: Documentation Update
+      regexp: "^.*doc[(\\w)]*:+.*$"
+      order: 3
+    - title: Pipeline changes
+      regexp: "^.*pipe[(\\w)]*:+.*$"
+      order: 4
+    - title: Other changes
+      order: 999
+  filters:
+    exclude:
+      - '^test:'
+      - '^skip:'
+      - '^Fix typo'

@@ -23,7 +23,7 @@ import (
 
 var (
 	configFilePath = fmt.Sprintf("%s/.aws/roles", os.Getenv("HOME"))
-	roleArnRe      = regexp.MustCompile(`^arn:aws:iam::(.+):role/([^/]+)(/.+)?$`)
+	roleArnRe      = regexp.MustCompile(`^arn:aws:(-((cn)|(us-gov)))?:iam::(.+):role/([^/]+)(/.+)?$`)
 )
 
 func usage() {
@@ -54,8 +54,9 @@ func defaultFormat() string {
 
 func main() {
 	var (
-		duration = flag.Duration("duration", time.Hour, "The duration that the credentials will be valid for.")
-		format   = flag.String("format", defaultFormat(), "Format can be 'bash' or 'powershell'.")
+		duration    = flag.Duration("duration", time.Hour*2, "The duration that the credentials will be valid for.")
+		format      = flag.String("format", defaultFormat(), "Format can be 'bash' or 'powershell'.")
+		sessionName = flag.String("sessionName", "cli", "A name associated with the assumed role session.")
 	)
 	flag.Parse()
 	argv := flag.Args()
@@ -73,7 +74,7 @@ func main() {
 	var creds *credentials.Value
 	var err error
 	if roleArnRe.MatchString(role) {
-		creds, err = assumeRole(role, "", *duration)
+		creds, err = assumeRole(role, "", *sessionName, *duration)
 	} else if _, err = os.Stat(configFilePath); err == nil {
 		fmt.Fprintf(os.Stderr, "WARNING: using deprecated role file (%s), switch to config file"+
 			" (https://docs.aws.amazon.com/cli/latest/userguide/cli-roles.html)\n",
@@ -86,7 +87,7 @@ func main() {
 			must(fmt.Errorf("%s not in %s", role, configFilePath))
 		}
 
-		creds, err = assumeRole(roleConfig.Role, roleConfig.MFA, *duration)
+		creds, err = assumeRole(roleConfig.Role, roleConfig.MFA, *sessionName, *duration)
 	} else {
 		creds, err = assumeProfile(role)
 	}
@@ -182,14 +183,14 @@ func assumeProfile(profile string) (*credentials.Value, error) {
 }
 
 // assumeRole assumes the given role and returns the temporary STS credentials.
-func assumeRole(role, mfa string, duration time.Duration) (*credentials.Value, error) {
+func assumeRole(role, mfa string, sessionName string, duration time.Duration) (*credentials.Value, error) {
 	sess := session.Must(session.NewSession())
 
 	svc := sts.New(sess)
 
 	params := &sts.AssumeRoleInput{
 		RoleArn:         aws.String(role),
-		RoleSessionName: aws.String("cli"),
+		RoleSessionName: aws.String(sessionName),
 		DurationSeconds: aws.Int64(int64(duration / time.Second)),
 	}
 	if mfa != "" {
